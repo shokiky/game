@@ -1,1 +1,119 @@
-gametest
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Racing Game</title>
+<style>
+body {
+  margin: 0;
+  background: #111;
+  color: white;
+  text-align: center;
+  font-family: sans-serif;
+}
+canvas {
+  background: #333;
+  display: block;
+  margin: 20px auto;
+  border: 3px solid white;
+}
+button {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+</style>
+</head>
+<body>
+<h1>レーシングゲーム</h1>
+<button onclick="startGame(1)">1人プレイ（ボット対戦）</button>
+<button onclick="startGame(2)">2人プレイ（ボットあり）</button>
+<canvas id="game" width="400" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let mode = 1;
+let player1, player2, bots;
+let keys = {};
+
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+function startGame(m) {
+  mode = m;
+
+  player1 = {x: 150, y: 500, color: "red"};
+  player2 = {x: 250, y: 500, color: "blue"};
+
+  bots = [
+    {x: 100, y: 0},
+    {x: 200, y: -200},
+    {x: 300, y: -400}
+  ];
+
+  requestAnimationFrame(gameLoop);
+}
+
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // road
+  ctx.fillStyle = "#555";
+  ctx.fillRect(100, 0, 200, 600);
+
+  movePlayers();
+  moveBots();
+
+  drawCar(player1);
+  if (mode === 2) drawCar(player2);
+
+  bots.forEach(drawBot);
+
+  requestAnimationFrame(gameLoop);
+}
+
+function movePlayers() {
+  if (keys["ArrowLeft"]) player1.x -= 5;
+  if (keys["ArrowRight"]) player1.x += 5;
+
+  if (mode === 2) {
+    if (keys["a"]) player2.x -= 5;
+    if (keys["d"]) player2.x += 5;
+  }
+}
+
+function moveBots() {
+  bots.forEach(bot => {
+    bot.y += 4;
+    if (bot.y > 600) {
+      bot.y = -100;
+      bot.x = 100 + Math.random() * 200;
+    }
+
+    // collision
+    if (collision(player1, bot)) alert("Player1 Crash!");
+    if (mode === 2 && collision(player2, bot)) alert("Player2 Crash!");
+  });
+}
+
+function drawCar(car) {
+  ctx.fillStyle = car.color;
+  ctx.fillRect(car.x, car.y, 30, 50);
+}
+
+function drawBot(bot) {
+  ctx.fillStyle = "yellow";
+  ctx.fillRect(bot.x, bot.y, 30, 50);
+}
+
+function collision(a, b) {
+  return a.x < b.x + 30 &&
+         a.x + 30 > b.x &&
+         a.y < b.y + 50 &&
+         a.y + 50 > b.y;
+}
+</script>
+</body>
+</html>
